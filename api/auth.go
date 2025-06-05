@@ -85,6 +85,11 @@ func GetAccessToken() (string, error) {
 	expirationTime := timestamp.Add(time.Second * time.Duration(authInfo.TimeToLive))
 	if time.Now().After(expirationTime) {
 		fmt.Println("Token expired, requesting new one...")
+		newTokens, err := RefreshToken(authInfo.RefreshToken)
+		if err != nil {
+			return "", err
+		}
+		SaveAuth(newTokens.AccessToken, newTokens.RefreshToken, newTokens.TimeToLive)
 	}
 	return authInfo.AccessToken, nil
 }
