@@ -128,6 +128,7 @@ func refreshToken(refreshToken string) (Tokens, error) {
 	if json.Unmarshal(responseBytes, &newTokens) != nil {
 		return Tokens{}, fmt.Errorf("Failed to parse refresh token response: %w", err)
 	}
+	time.Sleep(time.Millisecond * 250)
 	return Tokens{
 		AccessToken: newTokens.AccessToken,
 		RefreshToken: newTokens.RefreshToken,
