@@ -40,7 +40,6 @@ var configDir = userConfigDir + "/sharky/"
 var authFile = configDir + "auth.json"
 
 func GenerateLoginUrl() (string, string) {
-	fmt.Println("User:", authFile)
 	url := "https://login.sharkninja.com/authorize"
 	url += "?ui_locales=en"
 	url += "&response_type=code"
@@ -85,7 +84,7 @@ func GetAccessToken() (string, error) {
 	expirationTime := timestamp.Add(time.Second * time.Duration(authInfo.TimeToLive))
 	if time.Now().After(expirationTime) {
 		fmt.Println("Token expired, requesting new one...")
-		newTokens, err := RefreshToken(authInfo.RefreshToken)
+		newTokens, err := refreshToken(authInfo.RefreshToken)
 		if err != nil {
 			return "", err
 		}
@@ -109,7 +108,7 @@ func SaveAuth(accessToken string, refreshToken string, timeToLive int) error {
 	return nil
 }
 
-func RefreshToken(refreshToken string) (Tokens, error) {
+func refreshToken(refreshToken string) (Tokens, error) {
 	requestBody := []byte("{\"user\":{\"refresh_token\": \"" + refreshToken + "\"}}")
 	request, err := http.NewRequest(http.MethodPost, "https://user-field-39a9391a.aylanetworks.com/users/refresh_token.json", bytes.NewReader(requestBody))
 	request.Header.Add("Content-Type", "application/json")
