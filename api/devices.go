@@ -14,10 +14,20 @@ type (
 		Status string
 	}
 
-	DeviceListResponse struct {
+	DeviceInfo struct {
+		UserUuid string `json:"user_uuid"`
+	}
+
+	deviceListResponse struct {
 		Device struct {
 			ProductName string `json:"product_name"`
 			ConnectionStatus string `json:"connection_status"`
+		} `json:"device"`
+	}
+
+	deviceInfoResponse struct {
+		Device struct {
+			UserUuid string `json:"user_uuid"`
 		} `json:"device"`
 	}
 )
@@ -37,8 +47,10 @@ func GetDeviceList(accessToken string) ([]Device, error) {
 		return nil, errors.New("Invalid response while retrieving device list: not authorized")
 	} else if response.StatusCode == 403 {
 		return nil, errors.New("Invalid response while retrieving device list: forbidden")
+	} else if response.StatusCode != 200 {
+		return nil, errors.New("Invalid response while retrieving device list")
 	}
-	var responseBody []DeviceListResponse
+	var responseBody []deviceListResponse
 	responseBytes, err := io.ReadAll(response.Body)
 	if json.Unmarshal(responseBytes, &responseBody) != nil {
 		return nil, fmt.Errorf("Failed to parse device list response: %w", err)
@@ -51,4 +63,32 @@ func GetDeviceList(accessToken string) ([]Device, error) {
 		}
 	}
 	return deviceList, nil
+}
+
+func GetDeviceInfo(accessToken string, dsn string) (DeviceInfo, error) {
+	request, err := http.NewRequest(http.MethodGet, "https://ads-field-39a9391a.aylanetworks.com/apiv1/dsns/" + dsn + ".json", nil)
+	if err != nil {
+		return DeviceInfo{}, fmt.Errorf("Failed to create request for device info: %w", err)
+	}
+	request.Header.Add("Authorization", accessToken)
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		return DeviceInfo{}, fmt.Errorf("Failed to retrieve device info: %w", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode == 401 {
+		return DeviceInfo{}, errors.New("Invalid response while retrieving device info: not authorized")
+	} else if response.StatusCode == 404 {
+		return DeviceInfo{}, errors.New("Invalid response while retrieving device info: device not found")
+	} else if response.StatusCode != 200 {
+		return DeviceInfo{}, errors.New("Invalid response while retrieving device info")
+	}
+	var responseBody deviceInfoResponse
+	responseBytes, err := io.ReadAll(response.Body)
+	if json.Unmarshal(responseBytes, &responseBody) != nil {
+		return DeviceInfo{}, fmt.Errorf("Failed to parse device info response: %w", err)
+	}
+	return DeviceInfo{
+		UserUuid: responseBody.Device.UserUuid,
+	}, nil
 }
