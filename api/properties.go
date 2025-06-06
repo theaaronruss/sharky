@@ -11,7 +11,7 @@ import (
 )
 
 type (
-	Property struct {
+	Datapoint struct {
 		Name string
 		Dsn string
 		Value string
@@ -24,7 +24,7 @@ type (
 	}
 )
 
-func BatchUpdateProperties(accessToken string, userUuid string, properties ...Property) error {
+func BatchUpdateDatapoints(accessToken string, userUuid string, properties ...Datapoint) error {
 	if len(properties) < 1 {
 		return nil
 	}
@@ -55,7 +55,7 @@ func BatchUpdateProperties(accessToken string, userUuid string, properties ...Pr
 	return nil
 }
 
-func UpdateProperty(accessToken string, userUuid string, dsn string, name string, value string) error {
+func UpdateDatapoint(accessToken string, userUuid string, dsn string, name string, value string) error {
 	requestBody := "{\"datapoint\":{\"metadata\":{\"userUUID\":\"" + userUuid + "\"},\"value\":\"" + value + "\"}}"
 	request, err := http.NewRequest(http.MethodPost, "https://ads-field-39a9391a.aylanetworks.com/apiv1/dsns/" + dsn + "/properties/" + name + "/datapoints.json", bytes.NewBuffer([]byte(requestBody)))
 	if err != nil {
