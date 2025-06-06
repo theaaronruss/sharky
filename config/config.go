@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 )
@@ -35,6 +36,9 @@ func GetDefaultDsn() (string, error) {
 	err = json.Unmarshal(filesBytes, &config)
 	if err != nil {
 		return "", fmt.Errorf("Failed to parse config file: %w", err)
+	}
+	if len(config.DefaultDsn) == 0 {
+		return "", errors.New("No default DSN specified")
 	}
 	return config.DefaultDsn, nil
 }
