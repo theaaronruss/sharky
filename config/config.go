@@ -2,11 +2,14 @@ package config
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"sharky/api"
 	"time"
+)
+
+const (
+	DefaultDsn = "defaultDsn"
 )
 
 type (
@@ -27,30 +30,40 @@ var configDir = userConfigDir + "/sharky/"
 var authFile = configDir + "auth.json"
 var configFile = configDir + "config.json"
 
-func SetDefaultDsn(dsn string) error {
-	config := Config{dsn}
-	fileBytes, _ := json.Marshal(config)
-	err := os.WriteFile(configFile, fileBytes, 0600)
+func SetProperty(name string, value string) error {
+	fileBytes, err := os.ReadFile(configFile)
 	if err != nil {
-		return fmt.Errorf("Failed to save default dsn: %w", err)
+		return fmt.Errorf("Failed to read config file: %w", err)
+	}
+	var config map[string]string;
+	err = json.Unmarshal(fileBytes, &config)
+	if err != nil {
+		return fmt.Errorf("Failed to parse config file: %w", err)
+	}
+	config[name] = value
+	fileBytes, _ = json.Marshal(config)
+	err = os.WriteFile(configFile, fileBytes, 0600)
+	if err != nil {
+		return fmt.Errorf("Failed to save config file: %w", err)
 	}
 	return nil
 }
 
-func GetDefaultDsn() (string, error) {
-	filesBytes, err := os.ReadFile(configFile)
+func GetProperty(name string) (string, error) {
+	fileBytes, err := os.ReadFile(configFile)
 	if err != nil {
 		return "", fmt.Errorf("Failed to read config file: %w", err)
 	}
-	var config Config
-	err = json.Unmarshal(filesBytes, &config)
+	var config map[string]string
+	err = json.Unmarshal(fileBytes, &config)
 	if err != nil {
 		return "", fmt.Errorf("Failed to parse config file: %w", err)
 	}
-	if len(config.DefaultDsn) == 0 {
-		return "", errors.New("No default DSN specified")
+	value := config[name]
+	if value == "" {
+		return value, fmt.Errorf("Config property %s not found", name)
 	}
-	return config.DefaultDsn, nil
+	return config[name], nil
 }
 
 func SaveAuth(accessToken string, refreshToken string, timeToLive int) error {
