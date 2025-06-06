@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"sharky/api"
+	"sharky/config"
 
 	"github.com/spf13/cobra"
 )
@@ -16,7 +17,7 @@ var devicesCmd = &cobra.Command{
 	Use: "devices",
 	Short: "Get list of devices attached to your account",
 	Run: func(cmd *cobra.Command, args []string) {
-		accessToken, err := api.GetAccessToken()
+		accessToken, err := config.GetAccessToken()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 		}

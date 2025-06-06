@@ -10,7 +10,6 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -21,23 +20,12 @@ type (
 		TimeToLive int
 	}
 
-	authInfo struct {
-		AccessToken string `json:"accessToken"`
-		RefreshToken string `json:"refreshToken"`
-		TimeToLive int `json:"timeToLive"`
-		Timestamp string `json:"timestamp"`
-	}
-
 	refreshTokenResponse struct {
 		AccessToken string `json:"access_token"`
 		RefreshToken string `json:"refresh_token"`
 		ExpiresIn int `json:"expires_in"`
 	}
 )
-
-var userConfigDir, _ = os.UserConfigDir()
-var configDir = userConfigDir + "/sharky/"
-var authFile = configDir + "auth.json"
 
 func GenerateLoginUrl() (string, string) {
 	url := "https://login.sharkninja.com/authorize"
@@ -70,45 +58,7 @@ func generateRandomString(length int) string {
 	return string(output)
 }
 
-func GetAccessToken() (string, error) {
-	fileBytes, err := os.ReadFile(authFile)
-	if err != nil {
-		return "", fmt.Errorf("Failed to read auth file: %w", err)
-	}
-	var authInfo authInfo
-	err = json.Unmarshal(fileBytes, &authInfo)
-	if err != nil {
-		return "", fmt.Errorf("Failed to parse auth file: %w", err)
-	}
-	timestamp, _ := time.Parse(time.RFC3339, authInfo.Timestamp)
-	expirationTime := timestamp.Add(time.Second * time.Duration(authInfo.TimeToLive))
-	if time.Now().After(expirationTime) {
-		fmt.Println("Token expired, requesting new one...")
-		newTokens, err := refreshToken(authInfo.RefreshToken)
-		if err != nil {
-			return "", err
-		}
-		SaveAuth(newTokens.AccessToken, newTokens.RefreshToken, newTokens.TimeToLive)
-	}
-	return authInfo.AccessToken, nil
-}
-
-func SaveAuth(accessToken string, refreshToken string, timeToLive int) error {
-	authInfo := authInfo{
-		accessToken,
-		refreshToken,
-		timeToLive,
-		time.Now().Format(time.RFC3339),
-	}
-	fileBytes, _ := json.Marshal(authInfo)
-	err := os.WriteFile(authFile, fileBytes, 0600)
-	if err != nil {
-		return fmt.Errorf("Failed to save auth to file: %w", err)
-	}
-	return nil
-}
-
-func refreshToken(refreshToken string) (Tokens, error) {
+func RefreshToken(refreshToken string) (Tokens, error) {
 	requestBody := []byte("{\"user\":{\"refresh_token\": \"" + refreshToken + "\"}}")
 	request, err := http.NewRequest(http.MethodPost, "https://user-field-39a9391a.aylanetworks.com/users/refresh_token.json", bytes.NewReader(requestBody))
 	request.Header.Add("Content-Type", "application/json")
