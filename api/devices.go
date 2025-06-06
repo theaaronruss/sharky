@@ -12,6 +12,7 @@ type (
 	Device struct {
 		Name string
 		Status string
+		Dsn string
 	}
 
 	DeviceInfo struct {
@@ -22,6 +23,7 @@ type (
 		Device struct {
 			ProductName string `json:"product_name"`
 			ConnectionStatus string `json:"connection_status"`
+			Dsn string `json:"dsn"`
 		} `json:"device"`
 	}
 
@@ -60,6 +62,7 @@ func GetDeviceList(accessToken string) ([]Device, error) {
 		deviceList[i] = Device{
 			device.Device.ProductName,
 			device.Device.ConnectionStatus,
+			device.Device.Dsn,
 		}
 	}
 	return deviceList, nil

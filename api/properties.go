@@ -10,6 +10,19 @@ import (
 	"strings"
 )
 
+const (
+	PowerNormal = iota
+	PowerEco = iota
+	PowerMax = iota
+)
+
+const (
+	ModeStop = iota
+	ModePause = iota
+	ModeStart = iota
+	ModeReturn = iota
+)
+
 type (
 	Datapoint struct {
 		Name string
