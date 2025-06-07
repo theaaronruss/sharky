@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 )
 
 type (
@@ -94,4 +95,17 @@ func GetDeviceInfo(accessToken string, dsn string) (DeviceInfo, error) {
 	return DeviceInfo{
 		UserUuid: responseBody.Device.UserUuid,
 	}, nil
+}
+
+func GetDeviceDsn(accessToken string, name string) (string, error) {
+	deviceList, err := GetDeviceList(accessToken)
+	if err != nil {
+		return "", fmt.Errorf("Failed to find device DSN: %w", err)
+	}
+	for _, device := range deviceList {
+		if strings.EqualFold(device.Name, name) {
+			return device.Dsn, nil
+		}
+	}
+	return "", fmt.Errorf("Failed to find device with name \"%s\"", name)
 }

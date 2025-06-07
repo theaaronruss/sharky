@@ -10,18 +10,16 @@ import (
 )
 
 func init() {
-	rootCmd.AddCommand(cleanCmd)
+	rootCmd.AddCommand(stopCmd)
 }
 
-var cleanCmd = &cobra.Command{
-	Use: "clean",
-	Short: "Start cleaning home",
-	Args: cobra.MaximumNArgs(1),
+var stopCmd = &cobra.Command{
+	Use: "stop",
+	Short: "Stop the vacuum",
 	Run: func(cmd *cobra.Command, args []string) {
 		accessToken, err := config.GetAccessToken()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
-			return
 		}
 		dsn := ""
 		if len(args) > 0 {
@@ -42,24 +40,9 @@ var cleanCmd = &cobra.Command{
 			fmt.Fprintln(os.Stderr, err)
 			return
 		}
-		areasToClean := api.Datapoint{
-			Name: "SET_Areas_To_Clean",
-			Dsn: dsn,
-			Value: "*",
-		}
-		operatingMode := api.Datapoint{
-			Name: "SET_Operating_Mode",
-			Dsn: dsn,
-			Value: fmt.Sprint(api.ModeStart),
-		}
-		powerMode := api.Datapoint{
-			Name: "SET_Power_Mode",
-			Dsn: dsn,
-			Value: fmt.Sprint(api.PowerNormal),
-		}
-		err = api.BatchUpdateDatapoints(accessToken, deviceInfo.UserUuid, areasToClean, operatingMode, powerMode)
+		err = api.UpdateDatapoint(accessToken, deviceInfo.UserUuid, dsn, "SET_Operating_Mode", fmt.Sprint(api.ModeReturn))
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "Failed to start vacuum")
+			fmt.Fprintln(os.Stderr, err)
 		}
 	},
 }
