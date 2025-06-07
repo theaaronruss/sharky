@@ -88,6 +88,25 @@ func RemoveProperty(name string) error {
 	return nil
 }
 
+func GetAllProperties() ([]string, error) {
+	fileBytes, err := os.ReadFile(configFile)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to read config file: %w", err)
+	}
+	var config map[string]string
+	err = json.Unmarshal(fileBytes, &config)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse config file: %w", err)
+	}
+	propertiesList := make([]string, len(config))
+	i := 0
+	for name, value := range config {
+		propertiesList[i] = name + " = " + value
+		i++
+	}
+	return propertiesList, nil
+}
+
 func SaveAuth(accessToken string, refreshToken string, timeToLive int) error {
 	authInfo := authInfo{
 		accessToken,
