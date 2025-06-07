@@ -66,6 +66,28 @@ func GetProperty(name string) (string, error) {
 	return config[name], nil
 }
 
+func RemoveProperty(name string) error {
+	fileBytes, err := os.ReadFile(configFile)
+	if err != nil {
+		return fmt.Errorf("Failed to read config file: %w", err)
+	}
+	var config map[string]string
+	err = json.Unmarshal(fileBytes, &config)
+	if err != nil {
+		return fmt.Errorf("Failed to parse config file: %w", err)
+	}
+	if config[name] == "" {
+		return fmt.Errorf("Config property \"%s\" not found", name)
+	}
+	delete(config, name)
+	fileBytes, _ = json.Marshal(config)
+	err = os.WriteFile(configFile, fileBytes, 0600)
+	if err != nil {
+		return fmt.Errorf("Failed to save config file: %w", err)
+	}
+	return nil
+}
+
 func SaveAuth(accessToken string, refreshToken string, timeToLive int) error {
 	authInfo := authInfo{
 		accessToken,
